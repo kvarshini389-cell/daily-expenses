@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Expense Analytics Dashboard</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#f4f6f9;
+padding:20px;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+}
+
+h1{
+text-align:center;
+color:#003366;
+margin-bottom:20px;
+}
+
+.form-box{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+margin-bottom:20px;
+}
+
+.form-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:10px;
+}
+
+input,
+select,
+button{
+padding:10px;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+button{
+background:#003366;
+color:white;
+cursor:pointer;
+border:none;
+}
+
+button:hover{
+background:#0055aa;
+}
+
+.dashboard{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+margin-bottom:20px;
+}
+
+.card{
+padding:20px;
+border-radius:10px;
+color:white;
+text-align:center;
+}
+
+.income{
+background:green;
+}
+
+.expense{
+background:red;
+}
+
+.balance{
+background:#003366;
+}
+
+.analytics{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.1);
+margin-bottom:20px;
+}
+
+.analytics ul{
+margin-top:10px;
+padding-left:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+}
+
+table,
+th,
+td{
+border:1px solid #ddd;
+}
+
+th{
+background:#003366;
+color:white;
+}
+
+th,
+td{
+padding:10px;
+text-align:center;
+}
+
+.credit{
+color:green;
+font-weight:bold;
+}
+
+.debit{
+color:red;
+font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Daily Expense Analytics Dashboard</h1>
+
+<div class="form-box">
+
+<div class="form-grid">
+
+<input
+type="text"
+id="description"
+placeholder="Description">
+
+<input
+type="number"
+id="amount"
+placeholder="Amount">
+
+<select id="type">
+<option value="Income">Income</option>
+<option value="Expense">Expense</option>
+</select>
+
+<select id="category">
+<option>Salary</option>
+<option>Food</option>
+<option>Travel</option>
+<option>Shopping</option>
+<option>Entertainment</option>
+<option>Other</option>
+</select>
+
+<button onclick="addTransaction()">
+Add Transaction
+</button>
+
+</div>
+
+</div>
+
+<div class="dashboard">
+
+<div class="card income">
+<h2 id="totalIncome">₹0</h2>
+<p>Total Income</p>
+</div>
+
+<div class="card expense">
+<h2 id="totalExpense">₹0</h2>
+<p>Total Expense</p>
+</div>
+
+<div class="card balance">
+<h2 id="balance">₹0</h2>
+<p>Available Balance</p>
+</div>
+
+</div>
+
+<div class="analytics">
+
+<h2>Category Summary</h2>
+
+<ul id="categorySummary"></ul>
+
+</div>
+
+<table>
+
+<thead>
+<tr>
+<th>Description</th>
+<th>Category</th>
+<th>Type</th>
+<th>Amount</th>
+</tr>
+</thead>
+
+<tbody id="transactionTable">
+</tbody>
+
+</table>
+
+</div>
+
+<script>
+
+let transactions=[];
+
+function addTransaction(){
+
+let description=
+document.getElementById("description").value;
+
+let amount=
+parseFloat(
+document.getElementById("amount").value
+);
+
+let type=
+document.getElementById("type").value;
+
+let category=
+document.getElementById("category").value;
+
+if(description==="" || isNaN(amount)){
+
+alert("Please fill all fields");
+return;
+
+}
+
+transactions.push({
+description,
+amount,
+type,
+category
+});
+
+renderTransactions();
+updateDashboard();
+updateAnalytics();
+
+document.getElementById("description").value="";
+document.getElementById("amount").value="";
+}
+
+function renderTransactions(){
+
+let table=
+document.getElementById("transactionTable");
+
+table.innerHTML="";
+
+transactions.forEach(item=>{
+
+table.innerHTML+=`
+
+<tr>
+
+<td>${item.description}</td>
+
+<td>${item.category}</td>
+
+<td class="${
+item.type==="Income"
+? "credit"
+: "debit"
+}">
+${item.type}
+</td>
+
+<td>₹${item.amount}</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+function updateDashboard(){
+
+let income=
+transactions
+.filter(t=>t.type==="Income")
+.reduce((sum,t)=>sum+t.amount,0);
+
+let expense=
+transactions
+.filter(t=>t.type==="Expense")
+.reduce((sum,t)=>sum+t.amount,0);
+
+let balance=
+income-expense;
+
+document.getElementById("totalIncome")
+.innerText=`₹${income}`;
+
+document.getElementById("totalExpense")
+.innerText=`₹${expense}`;
+
+document.getElementById("balance")
+.innerText=`₹${balance}`;
+}
+
+function updateAnalytics(){
+
+let categories={};
+
+transactions.forEach(item=>{
+
+if(item.type==="Expense"){
+
+categories[item.category]=
+(categories[item.category]||0)
++ item.amount;
+
+}
+
+});
+
+let summary=
+document.getElementById("categorySummary");
+
+summary.innerHTML="";
+
+for(let category in categories){
+
+summary.innerHTML+=`
+
+<li>
+${category}: ₹${categories[category]}
+</li>
+
+`;
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
